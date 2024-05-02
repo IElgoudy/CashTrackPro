@@ -3,12 +3,12 @@ import java.io.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
-import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
+import java.util.Scanner;
 
 public class FinancialTracker {
     private static final String ADD_DEPOSIT_OPTION = "D";
@@ -18,6 +18,7 @@ public class FinancialTracker {
     private static final String TRANSACTION_FILE = "Files/transactions.csv";
     private static final DateTimeFormatter dateFormat = DateTimeFormatter.ISO_DATE;
     private static final DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("kk:mm:ss");
+
 
     public static void main(String[] args) {
         HomeScreen homeScreen = new HomeScreen();
@@ -92,7 +93,7 @@ public class FinancialTracker {
             Scanner scanner = new Scanner(System.in);
             System.out.print("Enter payment amount: ");
             double amount = scanner.nextDouble();
-            amount = amount*-1;
+            amount = amount * -1;
             scanner.nextLine(); // Consume newline character
 
             System.out.print("Enter payment description: ");
@@ -116,6 +117,7 @@ public class FinancialTracker {
             System.out.println("Error making payment: " + e.getMessage());
         }
     }
+
     public static void displayLedger() {
         Scanner scanner = new Scanner(System.in);
         String choice;
@@ -126,9 +128,9 @@ public class FinancialTracker {
             System.out.println("D) Deposits ");
             System.out.println("P) Payments ");
             System.out.println("R) Reports ");
-            System.out.println("0) Back ");
+            System.out.println("H) Home ");
             System.out.print("Enter your choice: ");
-            choice = scanner.nextLine().toUpperCase();
+            choice = scanner.nextLine().toUpperCase().strip();
 
             switch (choice) {
                 case "A":
@@ -144,15 +146,14 @@ public class FinancialTracker {
                     System.out.println("Going to Reports screen...");
                     displayReportsMenu();
                     break;
-                case "0":
+                case "H":
                     System.out.println("Going back to Home screen...");
                     break;
                 default:
                     System.out.println("Invalid choice. Please try again.");
             }
-        } while (!choice.equals("0"));
+        } while (!choice.equals("H"));
     }
-
 
     public static void displayAllEntries() {
         try {
@@ -170,7 +171,6 @@ public class FinancialTracker {
                 System.out.printf("| %-20s | %-20s | %-20s | %-20s | %-20.2f \n", transaction.getDate(), transaction.getTime(), transaction.getDescription(), transaction.getVendor(), transaction.getAmount());
             }
             System.out.println();
-            displayReportsMenu();
         } catch (IOException e) {
             System.out.println("Error reading ledger: " + e.getMessage());
         }
@@ -185,6 +185,7 @@ public class FinancialTracker {
             System.out.println("Error reading ledger: " + e.getMessage());
         }
     }
+
     private static List<Transaction> filterDeposits(List<Transaction> transactions) {
         List<Transaction> depositTransactions = new ArrayList<>();
         for (Transaction transaction : transactions) {
@@ -204,6 +205,7 @@ public class FinancialTracker {
             System.out.println("Error reading ledger: " + e.getMessage());
         }
     }
+
     private static List<Transaction> filterPayments(List<Transaction> transactions) {
         List<Transaction> paymentTransactions = new ArrayList<>();
         for (Transaction transaction : transactions) {
@@ -225,8 +227,6 @@ public class FinancialTracker {
         }
         System.out.println();
     }
-
-
 
     private static void displayReportsMenu() {
         Scanner scanner = new Scanner(System.in);
@@ -268,22 +268,109 @@ public class FinancialTracker {
         } while (choice != '0');
     }
 
+    // Implement Month To Date report
     private static void runMonthToDateReport() {
-        // Implement Month To Date report
-        System.out.println("Running Month To Date report...");
+        try {
+            List<Transaction> transactions = readTransactionsFromCSV();
+            YearMonth currentMonth = YearMonth.now();
+
+            System.out.println("Month To Date Report Transactions:");
+            System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8s |\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.println("-".repeat(88));
+
+            for (Transaction transaction : transactions) {
+                YearMonth transactionMonth = YearMonth.parse(transaction.getDate(), dateFormat);
+
+                if (transactionMonth.equals(currentMonth)) {
+                    System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8.2f |\n",
+                            transaction.getDate(), transaction.getTime(),
+                            transaction.getDescription(), transaction.getVendor(),
+                            transaction.getAmount());
+                }
+            }
+            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Error reading transactions: " + e.getMessage());
+        }
     }
+
     private static void runPreviousMonthReport() {
-        // Implement Previous Month report
-        System.out.println("Running Previous Month report...");
+        try {
+            List<Transaction> transactions = readTransactionsFromCSV();
+            YearMonth previousMonth = YearMonth.now().minusMonths(1);
+
+            System.out.println("Previous Month Report Transactions:");
+            System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8s |\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.println("-".repeat(88));
+
+            for (Transaction transaction : transactions) {
+                YearMonth transactionMonth = YearMonth.parse(transaction.getDate(), dateFormat);
+
+                if (transactionMonth.equals(previousMonth)) {
+                    System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8.2f |\n",
+                            transaction.getDate(), transaction.getTime(),
+                            transaction.getDescription(), transaction.getVendor(),
+                            transaction.getAmount());
+                }
+            }
+            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Error reading transactions: " + e.getMessage());
+        }
     }
+
     private static void runYearToDateReport() {
-        // Implement Year To Date report
-        System.out.println("Running Year To Date report...");
+        try {
+            List<Transaction> transactions = readTransactionsFromCSV();
+            YearMonth currentYearMonth = YearMonth.now();
+            int currentYear = currentYearMonth.getYear();
+
+            System.out.println("Year To Date Report Transactions:");
+            System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8s |\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.println("-".repeat(88));
+
+            for (Transaction transaction : transactions) {
+                YearMonth transactionYearMonth = YearMonth.parse(transaction.getDate(), dateFormat);
+
+                if (transactionYearMonth.getYear() == currentYear) {
+                    System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8.2f |\n",
+                            transaction.getDate(), transaction.getTime(),
+                            transaction.getDescription(), transaction.getVendor(),
+                            transaction.getAmount());
+                }
+            }
+            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Error reading transactions: " + e.getMessage());
+        }
     }
+
     private static void runPreviousYearReport() {
-        // Implement Previous Year report
-        System.out.println("Running Previous Year report...");
+        try {
+            List<Transaction> transactions = readTransactionsFromCSV();
+            YearMonth currentYearMonth = YearMonth.now();
+            int previousYear = currentYearMonth.getYear() - 1; // Get the previous year
+
+            System.out.println("Previous Year Report Transactions:");
+            System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8s |\n", "Date", "Time", "Description", "Vendor", "Amount");
+            System.out.println("-".repeat(88));
+
+            for (Transaction transaction : transactions) {
+                YearMonth transactionYearMonth = YearMonth.parse(transaction.getDate(), dateFormat);
+
+                if (transactionYearMonth.getYear() == previousYear) { // Check if transaction occurred in the previous year
+                    System.out.printf("| %-12s | %-10s | %-20s | %-20s | %-8.2f |\n",
+                            transaction.getDate(), transaction.getTime(),
+                            transaction.getDescription(), transaction.getVendor(),
+                            transaction.getAmount());
+                }
+            }
+            System.out.println();
+        } catch (IOException e) {
+            System.out.println("Error reading transactions: " + e.getMessage());
+        }
     }
+
     private static void searchByVendor() {
         Scanner scanner = new Scanner(System.in);
         System.out.print("Enter vendor name: ");
@@ -301,7 +388,6 @@ public class FinancialTracker {
             System.out.println("Error reading transactions: " + e.getMessage());
         }
     }
-
 
     private static String getCurrentDateTime() {
         return LocalDateTime.now().toString();
@@ -348,11 +434,11 @@ public class FinancialTracker {
         }
 
         public String toCSVString() {
-            return String.format("%s          | %s          | %s          | %s          | %.2f", date, time, description, vendor, amount);
+            return String.format("%s | %s | %s | %s | %.2f", date, time, description, vendor, amount);
         }
 
         public String toString() {
-            return String.format("%s          | %s          | %s          | %s          | %.2f", date, time, description, vendor, amount);
+            return String.format("%s | %s | %s | %s | %.2f", date, time, description, vendor, amount);
         }
 
         public String getDate() {
@@ -366,7 +452,6 @@ public class FinancialTracker {
         public String getDescription() {
             return description;
         }
-
 
         public double getAmount() {
             return amount;
