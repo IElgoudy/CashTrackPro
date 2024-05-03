@@ -20,8 +20,6 @@ CashTrackPro is a Java application designed to help users track their financial 
 - Provides methods to convert transactions to CSV format and to string for display purposes.
 
 ## How to Use CashTrackPro
-![CashTrackPro Screenshot](Screenshot 2024-05-03 014210.png)
-
 
 ### 1. Add Deposit
 - Select the "D) Add Deposit" option from the home screen.
